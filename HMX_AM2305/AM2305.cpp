@@ -2,8 +2,7 @@
 #include "AM2305.h"
  
 int Sensor_PIN;
-
- temp_humi temp_data;
+temp_humi temp_data;
 /****************************************************/
 void Set_Pin(int pin_no)
 {
@@ -31,13 +30,11 @@ void Sensor_InIt()
 temp_humi  Get_Data_AM2305(void)
 {
   int i=0;
-  
   float Humi,Temp;
   unsigned long duration[41];
   byte Result[41];
   pinMode(Sensor_PIN, OUTPUT);
   digitalWrite(Sensor_PIN,HIGH);
-  delay(1000);
   digitalWrite(Sensor_PIN,LOW);
   delay(1);
   digitalWrite(Sensor_PIN,HIGH);
@@ -61,15 +58,15 @@ temp_humi  Get_Data_AM2305(void)
         Result[k]= 1;
       }
   }
-   for( i = 0; i<40; i++)
-  {
-    Serial.print(Result[i] );
-  }
+//   for( i = 0; i<40; i++)
+//  {
+//    Serial.print(Result[i] );
+//  }
   Check_parity(Result);
   Get_Temp(Result); 
   Get_Humi(Result);
   memset(Result,0,40);
-  Serial.println();
+  //Serial.println();
   i=0;
   return temp_data;
 }
@@ -90,7 +87,7 @@ int Check_parity(byte *array_data)
   memcpy(High_TEMP,array_data+16,8);
   memcpy(LOW_TEMP,array_data+24,8);
   memcpy(Origenal_Parity,array_data+32,8);
-  Serial.println();
+  //Serial.println();
 
   addBinary(High_RH,LOW_RH,Parity);
   addBinary(High_TEMP,LOW_TEMP,Parity1);
@@ -141,8 +138,9 @@ temp_humi Get_Humi(byte *array_data)
   m = Bin_to_Dec(LOW_RH_U);
   n = Bin_to_Dec(LOW_RH_L);
   ret = (l*256+m*16+n);
-  val = ret/10;
+  val=ret/10;
   temp_data.Humi = val;
+  
   return temp_data;
 }
 /****************************************************/
@@ -172,16 +170,42 @@ int Bin_to_Dec(byte s[])
 }
 /****************************************************/
 
-void addBinary(byte a[], byte b[], byte sum[]){
-    int i, c = 0;
-    for(i = 0; i < 8 ; i++){
-       sum[i] = ((a[i] ^ b[i]) ^ c); // c is carry
-       c = ((a[i] & b[i]) | (a[i] & c)) | (b[i] & c);
-    }
-   for( i = 0; i<8; i++)
+void addBinary(byte a[], byte b[], byte temp[]){
+   int i, carry = 0,p=7;
+//    for(i = 0; i < 8 ; i++){
+//       sum[i] = ((a[i] ^ b[i]) ^ c); // c is carry
+//       c = ((a[i] & b[i]) | (a[i] & c)) | (b[i] & c);
+//    }
+//   for( i = 0; i<8; i++)
+//  {
+//    Serial.print(sum[i] );
+//  }
+//  Serial.println();
+//    sum[i] = c;
+
+  for(i = 8; i >= 0; i--, p--)
   {
-    Serial.print(sum[i] );
+    switch(a[i] + b[i] + carry)
+    {
+        case 0:
+            temp[p] = 0;
+            carry = 0;
+            break;
+        case 1:
+            temp[p] = 1;
+            carry = 0;
+            break;
+        case 2:
+            temp[p] = 0;
+            carry = 1;
+            break;
+        case 3:
+            temp[p] = 1;
+            carry = 1;
+            break;
+        default:
+            // should never be reached with inputs of 0 or 1
+           Serial.print("invalid input");
+     }
   }
-  Serial.println();
-    sum[i] = c;
 }

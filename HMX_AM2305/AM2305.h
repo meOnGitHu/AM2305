@@ -23,5 +23,5 @@ temp_humi Get_Temp(byte *array_data);
 /****************************************************/
 int Bin_to_Dec(byte s[]);
 /****************************************************/
-void addBinary(byte a[], byte b[], byte sum[]);
+void addBinary(byte a[], byte b[], byte temp[]);
 #endif
